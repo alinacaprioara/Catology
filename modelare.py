@@ -40,14 +40,29 @@ for column in data_df.columns:
     print(f"Total distinct values in {column}: {len(unique_values)}\n")
 
 print("Data types of columns:\n", data_df.dtypes)
-
+#adaugat pt valorile non-numerice
 label_encoder = LabelEncoder()
+non_numeric_columns = df.select_dtypes(include=['object']).columns
+
+for col in non_numeric_columns:
+    df[col] = label_encoder.fit_transform(df[col].astype(str))
+
 data_df['Sexe'] = label_encoder.fit_transform(data_df['Sexe'])
 data_df['Race'] = label_encoder.fit_transform(data_df['Race'])
 data_df['Logement'] = label_encoder.fit_transform(data_df['Logement'])
 
 print("Data types of columns:\n", data_df.dtypes)
+#corelatii
+correlation_matrix = df.corr()
 
+
+plt.figure(figsize=(16, 12))
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f",  linewidths=0.5, cbar_kws={"shrink": 0.8})
+plt.title('Matricea de corelatie între atribute', size=18)
+plt.xticks(rotation=45, ha='right')
+plt.yticks(rotation=0)
+plt.show()
+#gata corelatii
 sns.set_theme(style="whitegrid")
 
 numeric_columns = data_df.select_dtypes(include=['number']).columns
