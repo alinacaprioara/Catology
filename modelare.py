@@ -2,6 +2,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.preprocessing import LabelEncoder
+import tkinter as tk
+from tkinter import messagebox
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
 
 
 df = pd.read_excel('data.xlsx', engine='openpyxl')
@@ -47,21 +51,53 @@ print("Data types of columns:\n", data_df.dtypes)
 sns.set_theme(style="whitegrid")
 
 numeric_columns = data_df.select_dtypes(include=['number']).columns
-for column in numeric_columns:
-    plt.figure(figsize=(10, 4))
-    sns.histplot(data_df[column], bins=20, kde=True)
-    plt.title(f'Value distribution for: {column}')
-    plt.xlabel(column)
-    plt.ylabel('Frequency')
-    plt.show()
+column_index = 0
+show_histogram = True
+def plot_next():
+    global column_index, show_histogram, canvas
+    if column_index < len(numeric_columns):
+        column = numeric_columns[column_index]
 
-for column in numeric_columns:
-    plt.figure(figsize=(10, 4))
-    sns.boxplot(x=data_df[column])
-    plt.title(f'Boxplot for {column}')
-    plt.xlabel(column)
-    plt.show()
+        for widget in plot_frame.winfo_children():
+            widget.destroy()
 
+        fig, ax = plt.subplots(figsize=(10, 6))
+
+        if show_histogram:
+            sns.histplot(df[column], bins=20, kde=True, ax=ax)
+            ax.set_title(f'Histogram for: ')
+            ax.set_xlabel(column)
+            ax.set_ylabel('Frequency')
+        else:
+            sns.boxplot(x=df[column], ax=ax)
+            ax.set_title(f'Boxplot for: ')
+            ax.set_xlabel(column)
+
+
+        canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack()
+
+        show_histogram = not show_histogram
+
+        if not show_histogram:
+            column_index += 1
+    else:
+        messagebox.showinfo("End", "No more columns to display.")
+        root.quit()
+
+root = tk.Tk()
+root.title("Navigator")
+
+plot_frame = tk.Frame(root)
+plot_frame.pack(pady=20)
+
+next_button = tk.Button(root, text="Next", command=plot_next)
+next_button.pack(pady=10)
+
+plot_next()
+
+root.mainloop()
 #
 # if data_df.select_dtypes(include=[float, int]).shape[1] > 0:
 #     correlation_matrix = data_df.corr()
