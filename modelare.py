@@ -5,6 +5,7 @@ from sklearn.preprocessing import LabelEncoder
 import tkinter as tk
 from tkinter import messagebox
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from deep_translator import GoogleTranslator
 
 
 
@@ -19,9 +20,12 @@ print(sheet_names)
 data_df = pd.read_excel(xls, sheet_name='Data')
 
 data_df_head = data_df.head()
-
-duplicate_rows = data_df.duplicated().sum()
+def translate_column(column):
+    translator = GoogleTranslator(source='fr', target='en')
+    return column.apply(lambda x: translator.translate(str(x)))
+#translated_df = data_df.apply(translate_column) // nu imi dau seama daca il folosesc gresit sau sunt atat de multe date incat dureaza
 filtered_columns = data_df.drop(columns=["Row.names", "Plus"])
+duplicate_rows = filtered_columns.duplicated().sum()
 missing_values = filtered_columns.isnull().sum()
 
 df = df.drop_duplicates()
