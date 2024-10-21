@@ -21,10 +21,17 @@ data_df = pd.read_excel(xls, sheet_name='Data')
 data_df_head = data_df.head()
 
 duplicate_rows = data_df.duplicated().sum()
-missing_values = data_df.isnull().sum()
+filtered_columns = data_df.drop(columns=["Row.names", "Plus"])
+missing_values = filtered_columns.isnull().sum()
 
 df = df.drop_duplicates()
-#df = df = df.fillna(df.mean()) //nu poti face media coloanelor in cazul in care is nule, pt ca ai si valori non numerice
+label_encoder = LabelEncoder()
+non_numeric_columns = df.select_dtypes(include=['object']).columns
+
+for col in non_numeric_columns:
+    df[col] = label_encoder.fit_transform(df[col].astype(str))
+df = df = df.fillna(df.mean())
+#nu poti face media coloanelor in cazul in care is nule, pt ca ai si valori non numerice MERGE ACUM
 
 race_counts = data_df['Race'].value_counts()
 
@@ -34,26 +41,22 @@ print("Number of instances per class (Race):\n", race_counts)
 
 print("\nDistinct values and frequencies for each attribute:\n")
 for column in data_df.columns:
-    unique_values = data_df[column].value_counts()
-    print(f"Column: {column}")
-    print(unique_values)
-    print(f"Total distinct values in {column}: {len(unique_values)}\n")
+    if column not in ["Row.names", "Plus"]:
+        unique_values = data_df[column].value_counts()
+        print(f"Column: {column}")
+        print(unique_values)
+        print(f"Total distinct values in {column}: {len(unique_values)}\n")
 
 print("Data types of columns:\n", data_df.dtypes)
-#adaugat pt valorile non-numerice
-label_encoder = LabelEncoder()
-non_numeric_columns = df.select_dtypes(include=['object']).columns
-
-for col in non_numeric_columns:
-    df[col] = label_encoder.fit_transform(df[col].astype(str))
 
 data_df['Sexe'] = label_encoder.fit_transform(data_df['Sexe'])
 data_df['Race'] = label_encoder.fit_transform(data_df['Race'])
 data_df['Logement'] = label_encoder.fit_transform(data_df['Logement'])
 
+df_corr = df.drop(columns=["Row.names", "Plus"])
 print("Data types of columns:\n", data_df.dtypes)
 #corelatii
-correlation_matrix = df.corr()
+correlation_matrix = df_corr.corr()
 
 
 plt.figure(figsize=(16, 12))
@@ -65,9 +68,10 @@ plt.show()
 #gata corelatii
 sns.set_theme(style="whitegrid")
 
-numeric_columns = data_df.select_dtypes(include=['number']).columns
+numeric_columns = [col for col in data_df.select_dtypes(include=['number']).columns if col not in ["Row.names", "Plus"]]
 column_index = 0
 show_histogram = True
+show_boxplot = False
 def plot_next():
     global column_index, show_histogram, canvas
     if column_index < len(numeric_columns):
@@ -83,20 +87,22 @@ def plot_next():
             ax.set_title(f'Histogram for: ')
             ax.set_xlabel(column)
             ax.set_ylabel('Frequency')
+            show_histogram = False
+            show_boxplot = True
         else:
             sns.boxplot(x=df[column], ax=ax)
             ax.set_title(f'Boxplot for: ')
             ax.set_xlabel(column)
+            show_boxplot = False
+            show_histogram = True
+            column_index += 1
 
 
         canvas = FigureCanvasTkAgg(fig, master=plot_frame)
         canvas.draw()
         canvas.get_tk_widget().pack()
 
-        show_histogram = not show_histogram
 
-        if not show_histogram:
-            column_index += 1
     else:
         messagebox.showinfo("End", "No more columns to display.")
         root.quit()
