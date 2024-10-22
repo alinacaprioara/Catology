@@ -23,8 +23,8 @@ data_df_head = data_df.head()
 def translate_column(column):
     translator = GoogleTranslator(source='fr', target='en')
     return column.apply(lambda x: translator.translate(str(x)))
-#translated_df = data_df.apply(translate_column) // nu imi dau seama daca il folosesc gresit sau sunt atat de multe date incat dureaza
-filtered_columns = data_df.drop(columns=["Row.names", "Plus"])
+#translated_df = data_df.apply(translate_column)
+filtered_columns = data_df.drop(columns=["Row.names", "Plus", "Horodateur"])
 duplicate_rows = filtered_columns.duplicated().sum()
 missing_values = filtered_columns.isnull().sum()
 
@@ -45,7 +45,7 @@ print("Number of instances per class (Race):\n", race_counts)
 
 print("\nDistinct values and frequencies for each attribute:\n")
 for column in data_df.columns:
-    if column not in ["Row.names", "Plus"]:
+    if column not in ["Row.names", "Plus", "Horodateur"]:
         unique_values = data_df[column].value_counts()
         print(f"Column: {column}")
         print(unique_values)
@@ -57,7 +57,7 @@ data_df['Sexe'] = label_encoder.fit_transform(data_df['Sexe'])
 data_df['Race'] = label_encoder.fit_transform(data_df['Race'])
 data_df['Logement'] = label_encoder.fit_transform(data_df['Logement'])
 
-df_corr = df.drop(columns=["Row.names", "Plus"])
+df_corr = df.drop(columns=["Row.names", "Plus", "Horodateur"])
 print("Data types of columns:\n", data_df.dtypes)
 #corelatii
 correlation_matrix = df_corr.corr()
